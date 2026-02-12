@@ -5,6 +5,14 @@ import type { Env } from '../types';
 import { getActiveTasks, getTasksByStatus, getTasksDueBefore } from '../db/tasks';
 import { getActiveSchedules, formatScheduleList } from '../db/schedules';
 import { formatKanban } from '../format/kanban';
+import {
+  getAIProvider,
+  getAIModel,
+  getVisionModel,
+  setAIConfig,
+  listAvailableModels,
+  type AIProvider,
+} from '../ai/provider';
 
 /** Check if a message is a command */
 export function isCommand(text: string): boolean {
@@ -30,6 +38,8 @@ export async function handleCommand(env: Env, text: string): Promise<string> {
       return handleSchedules(env);
     case '/stats':
       return handleStats(env);
+    case '/model':
+      return handleModel(env, args);
     default:
       return `Unknown command: ${command}\n\nTry /help to see available commands.`;
   }
@@ -78,6 +88,11 @@ function handleHelp(): string {
     '▸ Schedules',
     '  /schedules — List recurring tasks',
     '  /recurring — (same as /schedules)',
+    '',
+    '▸ Configuration',
+    '  /model — Show current AI provider and model',
+    '  /model set <provider>:<model> — Change AI model',
+    '  /model list — List available models',
     '',
     '▸ Help',
     '  /start — Welcome guide and tips',
@@ -231,4 +246,123 @@ async function handleStats(env: Env): Promise<string> {
     `  Low: ${low}`,
     `  Someday: ${someday}`,
   ].join('\n');
+}
+
+/** /model - Show or change AI model configuration */
+async function handleModel(env: Env, args: string[]): Promise<string> {
+  const subcommand = args[0]?.toLowerCase();
+
+  // /model list - List available models
+  if (subcommand === 'list') {
+    return handleModelList();
+  }
+
+  // /model set <provider>:<model> - Set new model
+  if (subcommand === 'set' && args[1]) {
+    return handleModelSet(env, args[1]);
+  }
+
+  // /model - Show current configuration
+  return handleModelShow(env);
+}
+
+/** Show current AI model configuration */
+async function handleModelShow(env: Env): Promise<string> {
+  const provider = await getAIProvider(env.DB);
+  const model = await getAIModel(env.DB);
+  const visionModel = await getVisionModel(env.DB);
+
+  const lines = [
+    '🤖 AI Configuration',
+    '',
+    `▸ Provider: ${provider}`,
+    `▸ Model: ${model}`,
+  ];
+
+  if (provider === 'cloudflare') {
+    lines.push(`▸ Vision Model: ${visionModel}`);
+  }
+
+  lines.push(
+    '',
+    'Use /model list to see available models',
+    'Use /model set <provider>:<model> to change'
+  );
+
+  return lines.join('\n');
+}
+
+/** List available models */
+function handleModelList(): string {
+  const lines = [
+    '🤖 Available Models',
+    '',
+    '▸ OpenRouter (Recommended)',
+  ];
+
+  const openrouterModels = listAvailableModels('openrouter');
+  for (const [id, desc] of Object.entries(openrouterModels)) {
+    lines.push(`  ${id}`);
+    lines.push(`  └─ ${desc}`);
+  }
+
+  lines.push('', '▸ Cloudflare AI');
+
+  const cloudflareModels = listAvailableModels('cloudflare');
+  for (const [id, desc] of Object.entries(cloudflareModels)) {
+    lines.push(`  ${id}`);
+    lines.push(`  └─ ${desc}`);
+  }
+
+  lines.push(
+    '',
+    'Examples:',
+    '  /model set openrouter:anthropic/claude-3.5-haiku',
+    '  /model set cloudflare:llama-3.3-70b'
+  );
+
+  return lines.join('\n');
+}
+
+/** Set AI model */
+async function handleModelSet(env: Env, modelSpec: string): Promise<string> {
+  const [providerStr, model] = modelSpec.split(':');
+
+  if (!providerStr || !model) {
+    return 'Invalid format. Use: /model set <provider>:<model>\n\nExample: /model set openrouter:anthropic/claude-3.5-haiku';
+  }
+
+  const provider = providerStr.toLowerCase() as AIProvider;
+
+  if (provider !== 'openrouter' && provider !== 'cloudflare') {
+    return `Unknown provider: ${provider}\n\nAvailable providers: openrouter, cloudflare`;
+  }
+
+  // Validate OpenRouter API key is set
+  if (provider === 'openrouter' && !env.OPENROUTER_API_KEY) {
+    return [
+      '⚠ OpenRouter API key not configured',
+      '',
+      'Set it up:',
+      '  wrangler secret put OPENROUTER_API_KEY',
+      '',
+      'Or add to .dev.vars for local development',
+    ].join('\n');
+  }
+
+  try {
+    await setAIConfig(env.DB, provider, model);
+
+    return [
+      '✓ AI model updated',
+      '',
+      `▸ Provider: ${provider}`,
+      `▸ Model: ${model}`,
+      '',
+      'New model will be used for all AI operations.',
+    ].join('\n');
+  } catch (err) {
+    console.error('Failed to set AI model:', err);
+    return 'Failed to update model configuration. Check logs for details.';
+  }
 }

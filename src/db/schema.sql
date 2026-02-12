@@ -73,3 +73,10 @@ CREATE TABLE IF NOT EXISTS schedules (
 
 CREATE INDEX IF NOT EXISTS idx_schedules_next ON schedules(next_fire) WHERE active = 1;
 CREATE INDEX IF NOT EXISTS idx_schedules_active ON schedules(active);
+
+-- Configuration settings (key-value store)
+CREATE TABLE IF NOT EXISTS config (
+  key         TEXT PRIMARY KEY,
+  value       TEXT NOT NULL,
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);

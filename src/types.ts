@@ -8,6 +8,7 @@ export interface Env {
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_WEBHOOK_SECRET: string;
   TELEGRAM_CHAT_ID: string;
+  OPENROUTER_API_KEY?: string; // Optional: only needed if using OpenRouter
 }
 
 // ── Database Types ──
