@@ -34,17 +34,18 @@
 - [x] Add Telegram file download helpers (getFileUrl, downloadFile)
 
 ## Phase 4: Scheduler + Digest
-- [ ] Implement cron expression parser (scheduler/cron.ts)
-- [ ] Build schedule runner (scheduler/runner.ts) for the scheduled handler
-- [ ] Implement schedule CRUD (db/schedules.ts) with next-fire precomputation
-- [ ] Build daily digest generation (ai/digest.ts, scheduler/digest.ts, format/digest.ts)
-- [ ] Add NL schedule creation ("remind me every Monday...")
+- [x] Implement cron expression parser (scheduler/cron.ts)
+- [x] Build schedule runner (scheduler/runner.ts) for the scheduled handler
+- [x] Implement schedule CRUD (db/schedules.ts) with next-fire precomputation
+- [x] Build daily digest generation (ai/digest.ts, scheduler/digest.ts, format/digest.ts)
+- [x] Add NL schedule creation ("remind me every Monday...")
 
 ## Phase 5: Polish
-- [ ] Implement proactive suggestion engine (ai/suggest.ts)
-- [ ] Handle edge cases (timezone, missed fires, overdue items)
+- [x] Implement proactive suggestion engine (ai/suggest.ts)
+- [x] Handle edge cases (timezone, missed fires, overdue items)
 - [ ] Add inline keyboard confirmations for updates
-- [ ] Test end-to-end conversation flows
+- [x] Test end-to-end conversation flows
+- [x] Create GitHub Actions deploy workflow (deploy.yml)
 - [ ] Deploy to Cloudflare Workers
 - [ ] Register Telegram webhook
 

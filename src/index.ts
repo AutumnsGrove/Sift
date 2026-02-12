@@ -4,6 +4,7 @@
 import type { Env } from './types';
 import { verifyWebhook, parseUpdate, sendMessage, registerWebhook, isAuthorizedChat } from './telegram';
 import { routeMessage } from './pipeline/router';
+import { runScheduler } from './scheduler/runner';
 
 export default {
   /** Handle incoming HTTP requests (Telegram webhooks + registration) */
@@ -69,12 +70,14 @@ export default {
   /** Handle scheduled events (recurring tasks, daily digest) */
   async scheduled(
     _event: ScheduledEvent,
-    _env: Env,
+    env: Env,
     _ctx: ExecutionContext
   ): Promise<void> {
-    // Phase 4: Schedule runner + daily digest
-    // For now, this is a no-op placeholder
-    console.log('Scheduled handler fired');
+    try {
+      await runScheduler(env);
+    } catch (err) {
+      console.error('Scheduler error:', err);
+    }
   },
 };
 

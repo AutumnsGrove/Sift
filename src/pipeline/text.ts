@@ -5,8 +5,11 @@ import type { Env, InputIntent, ConversationMessage } from '../types';
 import { triageBrainDump } from '../ai/triage';
 import { queryTasks } from '../ai/query';
 import { processUpdate } from '../ai/update';
-import { createTask } from '../db/tasks';
+import { processScheduleCreation } from '../ai/schedule';
+import { generateSuggestion } from '../ai/suggest';
+import { createTask, getActiveTasks } from '../db/tasks';
 import { createDump, markDumpProcessed } from '../db/dumps';
+import { getActiveSchedules, formatScheduleList } from '../db/schedules';
 
 /** Handle a text message based on its classified intent */
 export async function handleTextMessage(
@@ -26,8 +29,7 @@ export async function handleTextMessage(
       return handleUpdate(env, text, conversationHistory);
 
     case 'schedule':
-      // Phase 4: schedule creation
-      return 'Recurring tasks are coming soon. For now, I can capture this as a one-time task if you\'d like.';
+      return handleSchedule(env, text, conversationHistory);
 
     case 'chat':
       return handleChat(text);
@@ -69,7 +71,14 @@ async function handleBrainDump(
   // Mark dump as processed
   await markDumpProcessed(env.DB, dump.id, taskIds);
 
-  return triage.response;
+  // Append proactive suggestion
+  let response = triage.response;
+  const suggestion = await getSuggestion(env, { type: 'create', taskCount: triage.tasks.length });
+  if (suggestion) {
+    response += `\n\n→ ${suggestion}`;
+  }
+
+  return response;
 }
 
 /** Process a query: generate SQL, execute, format results */
@@ -78,8 +87,23 @@ async function handleQuery(
   text: string,
   conversationHistory: ConversationMessage[]
 ): Promise<string> {
+  // Check for schedule-related queries
+  const lower = text.toLowerCase();
+  if (/\b(recurring|schedule|repeat|reminder)\b/.test(lower)) {
+    const schedules = await getActiveSchedules(env.DB);
+    return formatScheduleList(schedules);
+  }
+
   const result = await queryTasks(env, text, conversationHistory);
-  return result.response;
+
+  // Append proactive suggestion
+  let response = result.response;
+  const suggestion = await getSuggestion(env, { type: 'query' });
+  if (suggestion) {
+    response += `\n\n→ ${suggestion}`;
+  }
+
+  return response;
 }
 
 /** Process a task update: fuzzy match + apply changes */
@@ -89,7 +113,32 @@ async function handleUpdate(
   conversationHistory: ConversationMessage[]
 ): Promise<string> {
   const result = await processUpdate(env, text, conversationHistory);
-  return result.response;
+
+  // Append proactive suggestion
+  let response = result.response;
+  const suggestion = await getSuggestion(env, { type: 'update' });
+  if (suggestion) {
+    response += `\n\n→ ${suggestion}`;
+  }
+
+  return response;
+}
+
+/** Process schedule creation request */
+async function handleSchedule(
+  env: Env,
+  text: string,
+  conversationHistory: ConversationMessage[]
+): Promise<string> {
+  // Check for schedule management queries
+  const lower = text.toLowerCase();
+
+  if (/\b(show|list|what).*(recurring|schedule|reminder)\b/.test(lower)) {
+    const schedules = await getActiveSchedules(env.DB);
+    return formatScheduleList(schedules);
+  }
+
+  return processScheduleCreation(env, text, conversationHistory);
 }
 
 /** Handle casual chat */
@@ -112,6 +161,9 @@ function handleChat(text: string): string {
       '▸ Dump tasks — "I need to fix the auth bug and call the dentist"',
       '▸ Check your board — "what\'s on my plate today"',
       '▸ Update tasks — "the stripe thing is done"',
+      '▸ Send photos — screenshots, whiteboards, receipts',
+      '▸ Share links — I\'ll summarize and extract tasks',
+      '▸ Set recurring — "every Monday, review the board"',
       '▸ Search — "what was that thing about the API"',
       '',
       'No commands needed. Just talk to me.',
@@ -119,4 +171,17 @@ function handleChat(text: string): string {
   }
 
   return "Not sure what to do with that. If it's a task, just dump it and I'll capture it. If you're asking about your board, try \"what's on my plate?\"";
+}
+
+/** Get a proactive suggestion (only fires when relevant) */
+async function getSuggestion(
+  env: Env,
+  recentAction: { type: 'create' | 'update' | 'query'; taskCount?: number }
+): Promise<string | null> {
+  try {
+    const activeTasks = await getActiveTasks(env.DB);
+    return generateSuggestion(activeTasks, recentAction);
+  } catch {
+    return null;
+  }
 }
