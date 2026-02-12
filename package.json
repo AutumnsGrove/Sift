@@ -1,0 +1,21 @@
+{
+  "name": "sift",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Conversational Telegram bot that turns brain dumps into organized, triaged tasks",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute sift-tasks --local --file=src/db/schema.sql",
+    "db:init:remote": "wrangler d1 execute sift-tasks --file=src/db/schema.sql",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260210.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.64.0"
+  }
+}

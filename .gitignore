@@ -2,3 +2,7 @@ secrets.json
 *.log
 __pycache__/
 .DS_Store
+node_modules/
+dist/
+.wrangler/
+.dev.vars

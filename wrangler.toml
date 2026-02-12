@@ -1,0 +1,17 @@
+name = "sift"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sift-tasks"
+database_id = "placeholder-replace-with-actual-d1-id"
+
+[ai]
+binding = "AI"
+
+[vars]
+TELEGRAM_CHAT_ID = ""
+
+[triggers]
+crons = ["*/5 * * * *"]
