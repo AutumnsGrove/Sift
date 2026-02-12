@@ -1,6 +1,45 @@
-# Sift
+---
+aliases: []
+date created: Tuesday, February 11th 2026
+date modified: Wednesday, February 12th 2026
+tags:
+  - telegram-bot
+  - cloudflare-workers
+  - task-management
+  - workers-ai
+type: tech-spec
+---
 
-**A fully conversational Telegram bot that turns brain dumps into organized, triaged tasks — powered by Cloudflare Workers, D1, and Workers AI.**
+# Sift — Personal Task Triage Bot
+
+```
+              ·  ·  ·  ·  ·  ·  ·  ·  ·
+          thoughts, voice notes, photos, links
+              ·  ·  ·  ·  ·  ·  ·  ·  ·
+                  ╲   ╲   ╲   ╲   ╲
+            ┌─────────────────────────────┐
+            │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
+            │ ┄┄┄┄┄┄┄┄ SIFT ┄┄┄┄┄┄┄┄┄┄┄ │
+            │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
+            └─────────────┬───────────────┘
+                          │
+                ● tasks   ◐ actions   ○ someday
+
+           Pour your mind out. Keep what matters.
+```
+
+> *Pour your mind out. Keep what matters.*
+
+A fully conversational Telegram bot that turns brain dumps into organized, triaged tasks. Powered by Cloudflare Workers, D1, and Workers AI.
+
+**Public Name:** Sift
+**Internal Name:** Sift
+**Platform:** Telegram
+**Infrastructure:** Cloudflare Workers + D1 + Workers AI
+**Status:** Phase 0 (Scaffolding)
+**Last Updated:** February 2026
+
+A sieve in your pocket. You dump everything through it, the noise falls away, and what's left are the things that actually need doing. Sift doesn't ask you to organize. It just listens, understands, and sorts.
 
 -----
 

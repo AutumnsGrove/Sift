@@ -5,17 +5,27 @@
 ---
 
 ## Project Purpose
-[Fill in: What this project does - 1-2 sentences]
+
+Sift is a conversational Telegram bot that turns brain dumps (text, voice notes, photos, links) into organized, prioritized tasks stored in a D1 database. All interaction is natural language. No slash commands, no forms.
 
 ## Tech Stack
-[Fill in: Technologies, frameworks, and languages used]
-- Language:
-- Framework:
-- Key Libraries:
-- Package Manager:
+
+- **Language:** TypeScript
+- **Runtime:** Cloudflare Workers (fetch + scheduled handlers)
+- **Database:** Cloudflare D1 (SQLite)
+- **AI Models:** Workers AI (Llama 3.3 70B for triage/query, Llama 4 Scout for vision, Whisper for audio)
+- **Interface:** Telegram Bot API (webhook-based)
+- **Package Manager:** pnpm
 
 ## Architecture Notes
-[Fill in: Key architectural decisions, patterns, or structure]
+
+- Single Worker with two entry points: `fetch` (Telegram webhook) and `scheduled` (cron triggers every 5 min)
+- All input flows through a classification pipeline: detect type, pre-process, classify intent, route to handler
+- The LLM uses tool-calling to interact with D1 (query_tasks, create_task, update_task, search_dumps)
+- Conversation context (last ~20 messages) is stored in D1 and included in every LLM call
+- Recurring tasks use precomputed `next_fire` timestamps for fast index-friendly queries
+- Daily digest is a system-level schedule row, configurable via conversation
+- Full spec lives in `sift-spec.md`
 
 ---
 
@@ -76,6 +86,11 @@ Write a brief description of what the PR does and why. No specific format requir
 ## When to Use Skills
 
 **This project uses Claude Code Skills for specialized workflows. Invoke skills using the Skill tool when you encounter these situations:**
+
+### Sift Development
+- **When implementing Sift features** → Use skill: `sift-development`
+- **When making Sift architectural decisions** → Use skill: `sift-development`
+- **When debugging Telegram webhook or AI responses** → Use skill: `sift-development`
 
 ### Secrets & API Keys
 - **When managing API keys or secrets** → Use skill: `secrets-management`
@@ -231,6 +246,7 @@ Skills are invoked using the Skill tool. When a situation matches a skill trigge
 ### Available Skills Reference
 | Skill | Purpose |
 |-------|---------|
+| `sift-development` | Sift project context, architecture, patterns, phases |
 | `heartwood-auth` | Heartwood (GroveAuth) integration, sign-in, sessions |
 | `secrets-management` | API keys, credentials, secrets.json |
 | `api-integration` | External REST API integration |
