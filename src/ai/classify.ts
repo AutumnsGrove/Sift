@@ -2,6 +2,7 @@
 // Determines what the user wants: brain dump, query, update, or chat
 
 import type { Env, InputIntent, ConversationMessage } from '../types';
+import { callAI } from './provider';
 
 const CLASSIFY_SYSTEM_PROMPT = `You are classifying the intent of a Telegram message sent to a task management bot.
 
@@ -43,22 +44,13 @@ export async function classifyIntent(
 
   messages.push({ role: 'user', content: text });
 
-  const response = await env.AI.run(
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    {
-      messages,
-      max_tokens: 64,
-      temperature: 0.1,
-    }
-  );
+  const response = await callAI(env, {
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    max_tokens: 64,
+    temperature: 0.1,
+  });
 
-  const responseText = typeof response === 'string'
-    ? response
-    : 'response' in response
-      ? (response.response ?? '')
-      : '';
-
-  return parseIntent(responseText);
+  return parseIntent(response.text);
 }
 
 function parseIntent(raw: string): InputIntent {

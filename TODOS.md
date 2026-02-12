@@ -43,11 +43,20 @@
 ## Phase 5: Polish
 - [x] Implement proactive suggestion engine (ai/suggest.ts)
 - [x] Handle edge cases (timezone, missed fires, overdue items)
-- [ ] Add inline keyboard confirmations for updates
 - [x] Test end-to-end conversation flows
 - [x] Create GitHub Actions deploy workflow (deploy.yml)
+- [x] Add rate limit handling with exponential backoff
+- [x] Add slash commands (/start, /help, /board, /today, /stats, /schedules)
+- [x] Clean up BaseProject template files
+- [x] Create .dev.vars.example for secrets template
+- [x] Create init-digest.sql for auto-initialization
+
+## Pre-Launch (Optional Polish)
+- [ ] Add inline keyboard confirmations for updates
+- [ ] Add callback query handler for inline keyboards
 - [ ] Deploy to Cloudflare Workers
 - [ ] Register Telegram webhook
+- [ ] Test in production with real Telegram messages
 
 ## Future (V2)
 - [ ] MCP server for task access from Claude/agents

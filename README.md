@@ -44,7 +44,7 @@ Sift:  Got it, I pulled 3 tasks from that:
 ## Features
 
 - **Text brain dumps** — dump thoughts, get structured tasks back
-- **Voice notes** — Whisper transcription, then triage
+- **Voice notes** — Whisper transcription, then triage (coming soon)
 - **Photos/screenshots** — Llama 4 Scout extracts actionable items
 - **Links** — fetch, summarize, create tasks from content
 - **Natural language queries** — "what's on my plate today?"
@@ -52,12 +52,99 @@ Sift:  Got it, I pulled 3 tasks from that:
 - **Recurring tasks** — "remind me every Monday to review the board"
 - **Daily digest** — morning briefing with priorities and suggestions
 - **Proactive suggestions** — deadline warnings, backlog nudges, WIP awareness
+- **Slash commands** — `/board`, `/today`, `/stats`, `/help` for quick actions
+- **Rate limit handling** — automatic retry with exponential backoff
 
 ## Project Status
 
-**Phase 2: AI Triage + Query** (complete) — Core infrastructure and AI pipeline built. Phases 3-5 pending.
+**Phase 4+5: Complete** — All core features implemented except voice notes. Ready for production deployment.
 
-See `TODOS.md` for the full implementation roadmap and `sift-spec.md` for the complete specification.
+See `TODOS.md` for remaining polish items and `sift-spec.md` for the complete specification.
+
+## Setup & Deployment
+
+### Prerequisites
+
+- Cloudflare account
+- Telegram account
+- Node.js 22+ and pnpm
+
+### 1. Create Telegram Bot
+
+```bash
+# Talk to @BotFather on Telegram
+/newbot
+# Follow prompts, save your bot token
+
+# Get your user ID from @userinfobot
+# Save this value
+```
+
+### 2. Create Cloudflare D1 Database
+
+```bash
+wrangler d1 create sift-tasks
+# Copy the database_id to wrangler.toml
+```
+
+### 3. Configure Secrets
+
+For local development:
+```bash
+cp .dev.vars.example .dev.vars
+# Edit .dev.vars with your actual values
+```
+
+For production:
+```bash
+wrangler secret put TELEGRAM_BOT_TOKEN
+wrangler secret put TELEGRAM_WEBHOOK_SECRET
+wrangler secret put TELEGRAM_CHAT_ID
+```
+
+### 4. Initialize Database
+
+```bash
+# Local
+pnpm run db:init
+
+# Production
+pnpm run db:init:remote
+wrangler d1 execute sift-tasks --file=src/db/init-digest.sql
+```
+
+### 5. Deploy
+
+```bash
+pnpm run deploy
+# Or push to main branch for GitHub Actions deployment
+```
+
+### 6. Register Webhook
+
+```bash
+curl "https://sift.YOUR_SUBDOMAIN.workers.dev/register?secret=YOUR_WEBHOOK_SECRET"
+```
+
+### 7. Start Using
+
+Open Telegram, message your bot, and start dumping tasks!
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run locally with wrangler
+pnpm run dev
+
+# Run tests
+pnpm test
+
+# Type check
+pnpm typecheck
+```
 
 ## Cost
 

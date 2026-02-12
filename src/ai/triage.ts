@@ -2,6 +2,7 @@
 // Extracts structured tasks from freeform text using Workers AI
 
 import type { Env, ConversationMessage, TriagedTask, TriageResult } from '../types';
+import { callAI } from './provider';
 
 const TRIAGE_SYSTEM_PROMPT = `You are Sift, a personal task triage assistant. The user just sent a brain dump — freeform text containing one or more things they need to do.
 
@@ -58,22 +59,13 @@ export async function triageBrainDump(
 
   messages.push({ role: 'user', content: text });
 
-  const response = await env.AI.run(
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    {
-      messages,
-      max_tokens: 2048,
-      temperature: 0.3,
-    }
-  );
+  const response = await callAI(env, {
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    max_tokens: 2048,
+    temperature: 0.3,
+  });
 
-  const responseText = typeof response === 'string'
-    ? response
-    : 'response' in response
-      ? (response.response ?? '')
-      : '';
-
-  return parseTriage(responseText, text);
+  return parseTriage(response.text, text);
 }
 
 /** Parse the LLM triage response into structured data */

@@ -7,6 +7,7 @@ import { classifyIntent } from '../ai/classify';
 import { handleTextMessage } from './text';
 import { handlePhotoMessage } from './vision';
 import { handleLinkMessage } from './links';
+import { isCommand, handleCommand } from './commands';
 
 /** URL pattern: matches messages that are just a URL */
 const URL_ONLY_PATTERN = /^https?:\/\/\S+$/;
@@ -26,6 +27,11 @@ export async function routeMessage(env: Env, message: TelegramMessage): Promise<
   const text = message.text ?? message.caption;
   if (!text) {
     return "I didn't catch that. Send me text, and I'll help you sort it out.";
+  }
+
+  // Check for commands first (bypass AI for speed)
+  if (isCommand(text)) {
+    return handleCommand(env, text);
   }
 
   // Check for URL-only messages → link pipeline

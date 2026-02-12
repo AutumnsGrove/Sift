@@ -3,6 +3,7 @@
 
 import type { Env, ConversationMessage, Task } from '../types';
 import { queryTasksRaw } from '../db/tasks';
+import { callAI } from './provider';
 
 const QUERY_SYSTEM_PROMPT = `You are Sift, a personal task triage assistant. The user is asking about their tasks stored in a D1 (SQLite) database.
 
@@ -45,22 +46,13 @@ export async function queryTasks(
 
   messages.push({ role: 'user', content: question });
 
-  const aiResponse = await env.AI.run(
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    {
-      messages,
-      max_tokens: 1024,
-      temperature: 0.2,
-    }
-  );
+  const aiResponse = await callAI(env, {
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    max_tokens: 1024,
+    temperature: 0.2,
+  });
 
-  const responseText = typeof aiResponse === 'string'
-    ? aiResponse
-    : 'response' in aiResponse
-      ? (aiResponse.response ?? '')
-      : '';
-
-  const parsed = parseQueryResponse(responseText);
+  const parsed = parseQueryResponse(aiResponse.text);
 
   // Validate and execute the query
   const tasks = await executeQuery(env.DB, parsed.sql);

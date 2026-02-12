@@ -2,6 +2,7 @@
 // Generates an opinionated morning briefing from task data
 
 import type { Env, Task, Schedule } from '../types';
+import { callAI } from './provider';
 
 const DIGEST_SYSTEM_PROMPT = `You are generating a daily morning digest for the user's task board.
 Be concise but opinionated. Don't just list — prioritize, suggest,
@@ -52,27 +53,18 @@ export async function generateDigest(env: Env, data: DigestData): Promise<string
     { role: 'user', content: context },
   ];
 
-  const response = await env.AI.run(
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    {
-      messages,
-      max_tokens: 1024,
-      temperature: 0.4,
-    }
-  );
+  const response = await callAI(env, {
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    max_tokens: 1024,
+    temperature: 0.4,
+  });
 
-  const responseText = typeof response === 'string'
-    ? response
-    : 'response' in response
-      ? (response.response ?? '')
-      : '';
-
-  if (!responseText.trim()) {
+  if (!response.text.trim()) {
     return formatFallbackDigest(data, today);
   }
 
   // Prepend the header
-  return `─── Morning Digest · ${formatDate(today)} ───\n\n${responseText.trim()}`;
+  return `─── Morning Digest · ${formatDate(today)} ───\n\n${response.text.trim()}`;
 }
 
 /** Build the context string for the AI */
