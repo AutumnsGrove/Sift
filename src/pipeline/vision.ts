@@ -6,6 +6,7 @@ import { downloadFile } from '../telegram';
 import { createTask } from '../db/tasks';
 import { createDump, markDumpProcessed } from '../db/dumps';
 import { getConversation, addMessage } from '../db/conversations';
+import { callVisionAI } from '../ai/provider';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
@@ -129,48 +130,33 @@ interface VisionResult {
   response: string;
 }
 
-/** Send image to Llama 4 Scout for multimodal processing */
+/** Send image to vision model (via provider abstraction) */
 async function processImageWithVision(
   env: Env,
   dataUri: string,
   caption: string,
   conversationHistory: ConversationMessage[]
 ): Promise<VisionResult> {
-  const userContent: ({ type: string; text?: string; image_url?: { url: string } })[] = [
-    { type: 'image_url', image_url: { url: dataUri } },
-  ];
+  // Build prompt with system instructions and context
+  let prompt = VISION_SYSTEM_PROMPT;
 
-  if (caption) {
-    userContent.push({ type: 'text', text: `User's caption: "${caption}"` });
-  } else {
-    userContent.push({ type: 'text', text: 'Analyze this image and extract any actionable tasks.' });
-  }
-
-  const messages: { role: string; content: string | typeof userContent }[] = [
-    { role: 'system', content: VISION_SYSTEM_PROMPT },
-  ];
-
-  // Include recent conversation for context
-  for (const msg of conversationHistory.slice(-6)) {
-    messages.push({ role: msg.role, content: msg.content });
-  }
-
-  messages.push({ role: 'user', content: userContent });
-
-  const response = await env.AI.run(
-    '@cf/meta/llama-4-scout-17b-16e-instruct',
-    {
-      messages,
-      max_tokens: 2048,
-      temperature: 0.3,
+  // Add recent conversation context
+  if (conversationHistory.length > 0) {
+    prompt += '\n\nRecent conversation:\n';
+    for (const msg of conversationHistory.slice(-6)) {
+      prompt += `${msg.role}: ${msg.content}\n`;
     }
-  );
+  }
 
-  const responseText = typeof response === 'string'
-    ? response
-    : 'response' in response
-      ? (response.response ?? '')
-      : '';
+  // Add user caption if provided
+  if (caption) {
+    prompt += `\n\nUser's caption: "${caption}"`;
+  } else {
+    prompt += '\n\nAnalyze this image and extract any actionable tasks.';
+  }
+
+  // Call vision AI via provider abstraction
+  const responseText = await callVisionAI(env, prompt, dataUri);
 
   return parseVisionResponse(responseText);
 }
