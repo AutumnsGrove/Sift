@@ -4,6 +4,7 @@
 import type { Env, ConversationMessage } from '../types';
 import { createSchedule } from '../db/schedules';
 import { isValidCron } from '../scheduler/cron';
+import { callAI } from './provider';
 
 const SCHEDULE_SYSTEM_PROMPT = `You are Sift, a personal task triage assistant. The user wants to set up a recurring task or reminder.
 
@@ -61,22 +62,13 @@ export async function processScheduleCreation(
 
   messages.push({ role: 'user', content: text });
 
-  const response = await env.AI.run(
-    '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    {
-      messages,
-      max_tokens: 512,
-      temperature: 0.2,
-    }
-  );
+  const response = await callAI(env, {
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+    max_tokens: 512,
+    temperature: 0.2,
+  });
 
-  const responseText = typeof response === 'string'
-    ? response
-    : 'response' in response
-      ? (response.response ?? '')
-      : '';
-
-  return parseAndCreateSchedule(env, responseText, text);
+  return parseAndCreateSchedule(env, response.text, text);
 }
 
 async function parseAndCreateSchedule(
