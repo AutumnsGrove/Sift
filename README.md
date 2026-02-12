@@ -55,7 +55,7 @@ Sift:  Got it, I pulled 3 tasks from that:
 
 ## Project Status
 
-**Phase 0: Scaffolding** (current)
+**Phase 2: AI Triage + Query** (complete) — Core infrastructure and AI pipeline built. Phases 3-5 pending.
 
 See `TODOS.md` for the full implementation roadmap and `sift-spec.md` for the complete specification.
 

@@ -1,29 +1,30 @@
 # Sift — TODOs
 
-## Phase 0: Scaffolding (Current)
+## Phase 0: Scaffolding
 - [x] Format sift-spec.md with Grove spec standards
 - [x] Create sift-development skill
 - [x] Update AGENT.md with project details
 - [x] Update TODOS.md with implementation phases
 - [x] Update README.md for Sift
-- [ ] Commit and push phase 0
+- [x] Commit and push phase 0
 
 ## Phase 1: Core Infrastructure
-- [ ] Initialize TypeScript project (package.json, tsconfig.json)
-- [ ] Create wrangler.toml with D1 binding, AI binding, cron triggers
-- [ ] Write D1 schema (schema.sql) with all 4 tables + indexes
-- [ ] Implement Telegram Bot API helpers (telegram.ts)
-- [ ] Build fetch handler entry point (index.ts) with webhook verification
-- [ ] Implement basic text message pipeline (router.ts, text.ts)
-- [ ] Set up local development with wrangler dev
+- [x] Initialize TypeScript project (package.json, tsconfig.json)
+- [x] Create wrangler.toml with D1 binding, AI binding, cron triggers
+- [x] Write D1 schema (schema.sql) with all 4 tables + indexes
+- [x] Implement Telegram Bot API helpers (telegram.ts)
+- [x] Build fetch handler entry point (index.ts) with webhook verification
+- [x] Implement basic text message pipeline (router.ts, text.ts)
+- [x] Set up local development with wrangler dev
 
 ## Phase 2: AI Triage + Query
-- [ ] Implement brain dump triage (ai/triage.ts) with structured task extraction
-- [ ] Implement NL-to-SQL query engine (ai/query.ts)
-- [ ] Implement task update handler with fuzzy matching
-- [ ] Build task CRUD operations (db/tasks.ts, db/dumps.ts, db/conversations.ts)
-- [ ] Implement conversation context management
-- [ ] Build response formatting (format/kanban.ts, format/list.ts, format/card.ts)
+- [x] Implement brain dump triage (ai/triage.ts) with structured task extraction
+- [x] Implement intent classification (ai/classify.ts) with heuristic fallback
+- [x] Implement NL-to-SQL query engine (ai/query.ts)
+- [x] Implement task update handler with fuzzy matching (ai/update.ts)
+- [x] Build task CRUD operations (db/tasks.ts, db/dumps.ts, db/conversations.ts)
+- [x] Implement conversation context management
+- [x] Build response formatting (format/kanban.ts, format/list.ts, format/card.ts)
 
 ## Phase 3: Media Processing
 - [ ] Implement voice note pipeline (pipeline/voice.ts) with Whisper transcription
