@@ -4,7 +4,7 @@ import type { Env, TelegramUpdate } from './types';
 
 const TELEGRAM_API = 'https://api.telegram.org/bot';
 
-/** Send a text message to the configured chat */
+/** Send a text message to the configured chat with automatic retry on rate limits */
 export async function sendMessage(
   env: Env,
   text: string,
@@ -23,18 +23,42 @@ export async function sendMessage(
     reply_markup: options?.reply_markup,
   };
 
+  return sendWithRetry(url, body);
+}
+
+/** Send a request to Telegram API with exponential backoff on rate limits */
+async function sendWithRetry(
+  url: string,
+  body: Record<string, unknown>,
+  attempt = 0
+): Promise<Response> {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
+  // Rate limited - retry with exponential backoff
+  if (response.status === 429 && attempt < 3) {
+    const retryAfter = parseInt(response.headers.get('Retry-After') ?? '1', 10);
+    const delay = Math.max(retryAfter * 1000, 1000 * Math.pow(2, attempt));
+
+    console.warn(`Rate limited by Telegram. Retrying after ${delay}ms (attempt ${attempt + 1}/3)`);
+    await sleep(delay);
+    return sendWithRetry(url, body, attempt + 1);
+  }
+
   if (!response.ok) {
     const error = await response.text();
-    console.error(`Telegram sendMessage failed: ${response.status} ${error}`);
+    console.error(`Telegram API failed: ${response.status} ${error}`);
   }
 
   return response;
+}
+
+/** Sleep for a given number of milliseconds */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Verify the incoming webhook request is from Telegram (timing-safe) */
