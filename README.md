@@ -44,7 +44,7 @@ Sift:  Got it, I pulled 3 tasks from that:
 ## Features
 
 - **Text brain dumps** — dump thoughts, get structured tasks back
-- **Voice notes** — Whisper transcription, then triage
+- **Voice notes** — Whisper transcription, then triage (coming soon)
 - **Photos/screenshots** — Llama 4 Scout extracts actionable items
 - **Links** — fetch, summarize, create tasks from content
 - **Natural language queries** — "what's on my plate today?"
@@ -52,6 +52,8 @@ Sift:  Got it, I pulled 3 tasks from that:
 - **Recurring tasks** — "remind me every Monday to review the board"
 - **Daily digest** — morning briefing with priorities and suggestions
 - **Proactive suggestions** — deadline warnings, backlog nudges, WIP awareness
+- **Slash commands** — `/board`, `/today`, `/stats`, `/help` for quick actions
+- **Rate limit handling** — automatic retry with exponential backoff
 
 ## Project Status
 
