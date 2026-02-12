@@ -82,6 +82,37 @@ export async function registerWebhook(env: Env, webhookUrl: string): Promise<Res
   return response;
 }
 
+/** Get a file download URL from Telegram */
+export async function getFileUrl(env: Env, fileId: string): Promise<string | null> {
+  const url = `${TELEGRAM_API}${env.TELEGRAM_BOT_TOKEN}/getFile`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file_id: fileId }),
+  });
+
+  if (!response.ok) return null;
+
+  const data = (await response.json()) as {
+    ok: boolean;
+    result?: { file_path?: string };
+  };
+  if (!data.ok || !data.result?.file_path) return null;
+
+  return `https://api.telegram.org/file/bot${env.TELEGRAM_BOT_TOKEN}/${data.result.file_path}`;
+}
+
+/** Download a file from Telegram as an ArrayBuffer */
+export async function downloadFile(env: Env, fileId: string): Promise<ArrayBuffer | null> {
+  const url = await getFileUrl(env, fileId);
+  if (!url) return null;
+
+  const response = await fetch(url);
+  if (!response.ok) return null;
+
+  return response.arrayBuffer();
+}
+
 /** Check if a chat ID matches the authorized user */
 export function isAuthorizedChat(chatId: number, env: Env): boolean {
   return String(chatId) === env.TELEGRAM_CHAT_ID;

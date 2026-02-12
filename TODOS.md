@@ -28,9 +28,10 @@
 
 ## Phase 3: Media Processing
 - [ ] Implement voice note pipeline (pipeline/voice.ts) with Whisper transcription
-- [ ] Implement photo pipeline (pipeline/vision.ts) with Llama 4 Scout
-- [ ] Implement link pipeline (pipeline/links.ts) with URL fetch + summarize
-- [ ] Add source type tags in responses ([Voice note], [From image], [From link])
+- [x] Implement photo pipeline (pipeline/vision.ts) with Llama 4 Scout
+- [x] Implement link pipeline (pipeline/links.ts) with URL fetch + summarize
+- [x] Add source type tags in responses ([▦ From image], [⇗ From link])
+- [x] Add Telegram file download helpers (getFileUrl, downloadFile)
 
 ## Phase 4: Scheduler + Digest
 - [ ] Implement cron expression parser (scheduler/cron.ts)

@@ -5,18 +5,22 @@ import type { Env, TelegramMessage } from '../types';
 import { getConversation, addMessage } from '../db/conversations';
 import { classifyIntent } from '../ai/classify';
 import { handleTextMessage } from './text';
+import { handlePhotoMessage } from './vision';
+import { handleLinkMessage } from './links';
+
+/** URL pattern: matches messages that are just a URL */
+const URL_ONLY_PATTERN = /^https?:\/\/\S+$/;
 
 /** Route an incoming Telegram message to the appropriate handler */
 export async function routeMessage(env: Env, message: TelegramMessage): Promise<string> {
   // Determine input type
   if (message.voice) {
-    // Phase 3: voice pipeline
+    // Phase 3: voice pipeline (still pending)
     return 'Voice notes are coming soon. For now, send me text and I\'ll sort it out.';
   }
 
   if (message.photo && message.photo.length > 0) {
-    // Phase 3: vision pipeline
-    return 'Photo processing is coming soon. You can describe what\'s in the image and I\'ll capture it.';
+    return handlePhotoMessage(env, message);
   }
 
   const text = message.text ?? message.caption;
@@ -24,10 +28,9 @@ export async function routeMessage(env: Env, message: TelegramMessage): Promise<
     return "I didn't catch that. Send me text, and I'll help you sort it out.";
   }
 
-  // Check for URL-only messages (Phase 3: link pipeline)
-  const urlPattern = /^https?:\/\/\S+$/;
-  if (urlPattern.test(text.trim())) {
-    return 'Link processing is coming soon. Tell me what to do with this link and I\'ll capture it as a task.';
+  // Check for URL-only messages → link pipeline
+  if (URL_ONLY_PATTERN.test(text.trim())) {
+    return handleLinkMessage(env, text.trim(), message.message_id);
   }
 
   // Get conversation context
